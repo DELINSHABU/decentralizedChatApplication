@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Decentralized Chat</title>
+  <style>
+    body { font-family: sans-serif; }
+    #messages { margin-top: 20px; }
+    #messages p { margin: 5px 0; padding: 8px; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <h1>Simple Decentralized Chat</h1>
+
+  <input type="text" id="messageInput" placeholder="Enter your message">
+  <button id="sendButton">Send</button>
+
+  <div id="messages">
+    </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+  <script>
+    const gun = Gun({
+      peers: ['https://relay.dam.us'], // Use a public relay peer
+      localStorage: true // Enable local storage for data persistence
+    });
+
+    const chatRoom = gun.get('chat');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const messagesDiv = document.getElementById('messages');
+
+    sendButton.addEventListener('click', () => {
+      const message = messageInput.value;
+      if (message) {
+        chatRoom.set({ sender: 'User', text: message, timestamp: Date.now() });
+        messageInput.value = '';
+      }
+    });
+
+    chatRoom.map().on(messageData => {
+      if (messageData) {
+        const messageElement = document.createElement('p');
+        messageElement.textContent = `${messageData.sender}: ${messageData.text}`;
+        messagesDiv.appendChild(messageElement);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the latest message
+      }
+    });
+  </script>
+</body>
+</html>
